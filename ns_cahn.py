@@ -82,7 +82,7 @@ def F1(variables_dict, physical_parameters_dict):
     test_2 = variables_dict['test_2']
     u_answer = variables_dict['u_answer']
 
-    F1 = fe.inner(fe.div(u_answer), test_2) * dt * fe.dx
+    F1 = fe.inner(fe.div(u_answer), test_2)/dt * fe.dx
 
     return F1
 
@@ -145,7 +145,6 @@ def F2(variables_dict, physical_parameters_dict):
         + (1/rho_mixed) * fe.inner(sigma(u_answer, p_answer, mu_mixed), epsilon(test_1)) * fe.dx
         - fe.inner( gravity, test_1[1]) * fe.dx
         - (1/rho_mixed) * fe.inner(sf, test_1 )* fe.dx
-
     )
 
     return F2
@@ -296,8 +295,7 @@ def update_solver_on_new_mesh_ns(mesh, physical_parameters_dict, old_solution_ve
             }
 
     # define the initial condition for the first time step with consdering PF is already defined:
-    if old_solution_vector_ns is None and old_solution_vector_0_ns is  None :
-
+    if old_solution_vector_ns is None and old_solution_vector_0_ns is  None and variables_dict is None :
 
         variables_dict = define_variables_ns(mesh)
 
@@ -339,8 +337,9 @@ def update_solver_on_new_mesh_ns(mesh, physical_parameters_dict, old_solution_ve
 
 
     #updating Phi on NS mesh: 
-    if  old_solution_vector_0_pf is not None and variables_dict is not None:
+    if  variables_dict is not None:
 
+     
 
         solution_vector_ns = variables_dict['solution_vector_ns']
         solution_vector_ns_0 = variables_dict['solution_vector_ns_0']

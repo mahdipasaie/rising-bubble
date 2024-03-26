@@ -30,7 +30,7 @@ physical_parameters_dict = {
     "A": 0.25,
     "kappa": 5E-5, #Kappa = dy
     "theta": 0.5,  #crank-niclson
-    "seed_center": lambda Nx, dy: [ Nx/2, 12*dy],
+    "seed_center": lambda Nx, dy: [ Nx/2, 12*dy+2.7E-3 ],
     "initial_seed_radius": 2.7E-3, 
     "Domain": lambda Nx, Ny: [(0.0, 0.0), (Nx, Ny)] ,
 
@@ -46,8 +46,8 @@ physical_parameters_dict = {
 
     ###################### SOLVER PARAMETERS ######################
 
-    "abs_tol_pf": 1E-8,  
-    "rel_tol_pf": 1E-6,  
+    "abs_tol_pf": 1E-5,  
+    "rel_tol_pf": 1E-4,  
     "preconditioner_ns": 'ilu',  
     'maximum_iterations_ns': 50, 
     'nonlinear_solver_pf': 'snes',     # "newton" , 'snes'
@@ -56,7 +56,7 @@ physical_parameters_dict = {
     'maximum_iterations_pf': 50,
 
     #############
-     "interface_threshold_gradient": 0.0001,
+     "interface_threshold_gradient": 0.001,
 
 }
 
@@ -159,6 +159,33 @@ Bc = ns_problem_dict["Bc"]
 
 
 ########################## END ##############################
+
+
+def write_simulation_data_to_single_file(solution_vectors, times, file, variable_names_list):
+
+    # Configure file parameters
+    file.parameters["rewrite_function_mesh"] = True
+    file.parameters["flush_output"] = True
+    file.parameters["functions_share_mesh"] = True
+
+    for Sol_Func, time, variable_names in zip(solution_vectors, times, variable_names_list):
+        # Split the combined function into its components
+        functions = Sol_Func.split(deepcopy=True)
+
+        # Check if the number of variable names matches the number of functions
+        if variable_names and len(variable_names) != len(functions):
+            raise ValueError("The number of variable names must match the number of functions.")
+
+        # Rename and write each function to the file
+        for i, func in enumerate(functions):
+            name = variable_names[i] if variable_names else f"Variable_{i}"
+            func.rename(name, "solution")
+            file.write(func, time)
+
+
+    file.close()
+
+
 
 
 T = 0
@@ -264,10 +291,38 @@ for it in tqdm( range(0, 10000000) ):
     ####### write first solution to file ########
     if it % 1 == 0: 
 
-        variable_names_list = ["C", "mu"]  # Adjust variable names as needed
-        write_simulation_data(solution_vector_pf_0, T, file, variable_names_list )
+        solution_vectors = [solution_vector_ns_0, solution_vector_pf_0]
+        times = [T, T]  # Assuming T_ns and T_pf are defined times for NS and PF solutions
+        variable_names_list = [["Vel", "Press"], ["C", "mu"]]  # Adjust variable names as needed
+        # extra_funcs_dict = {"velocity_PF": vel_answer_on_pf_mesh}  # Assuming these are defined
+        write_simulation_data_to_single_file(solution_vectors, times, file, variable_names_list)
 
 
+
+
+
+    
+    
+    ###################### Information about simulation ######################
+        
+    if  (it == 20 or it % 30 == 25 ):
+
+
+
+        # mesh information: 
+        n_cells = mesh_info['n_cells']
+        hmin = mesh_info['hmin']
+        hmax = mesh_info['hmax']
+        dx_min = mesh_info['dx_min']
+        dx_max = mesh_info['dx_max']
+
+        if rank == 0 :
+             print(f"""
+                - Mesh Information:
+                    Number of Cells: {n_cells}
+                    Minimum Cell Diameter (dx_min): {dx_min:.4f}
+                    Maximum Cell Diameter (dx_max): {dx_max:.4f}
+                """, flush=True)
 
 
 

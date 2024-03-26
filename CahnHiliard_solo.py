@@ -257,6 +257,8 @@ def update_solver_on_new_mesh_pf(mesh, physical_parameters_dict, old_solution_ve
     # define the initial condition for the first time step:
     if old_solution_vector_pf is None and old_solution_vector_0_pf is  None and variables_dict_pf is None:
 
+        
+
     
         variables_dict_pf = define_variables(mesh)
 
@@ -301,6 +303,9 @@ def update_solver_on_new_mesh_pf(mesh, physical_parameters_dict, old_solution_ve
 
     # updte velocity on pf mesh :
     if variables_dict_pf is not None:
+        
+
+        
 
         
         solution_vector_pf = variables_dict_pf["solution_vector_pf"]
