@@ -133,8 +133,8 @@ def Eq1(variables_dict_pf, physical_parameters_dict ):
     mu_mid = (1.0-theta)*mu_answer_prev + theta*mu_answer
     
     # Weak form of the concentration evolution equation
-    F1 = fe.inner((c_answer - c_answer_prev), test_1_pf)*fe.dx \
-        + dt*M*fe.inner(fe.grad(mu_mid), fe.grad(test_1_pf))*fe.dx \
+    F1 = fe.inner((c_answer - c_answer_prev)/dt, test_1_pf)*fe.dx \
+        + M*fe.inner(fe.grad(mu_mid), fe.grad(test_1_pf))*fe.dx \
         + fe.inner(fe.dot(vel_answer, fe.grad(c_answer)), test_1_pf) * fe.dx # convection
     
     return F1
